@@ -207,7 +207,7 @@ __thread WPStats_t wpStats;
 #define WP_IPC_FALSE_SHARING_EVENT_NAME "WP_IPC_FALSE_SHARING"
 #define WP_IPC_TRUE_SHARING_EVENT_NAME "WP_IPC_TRUE_SHARING"
 #define WP_IPC_ALL_SHARING_EVENT_NAME "WP_IPC_ALL_SHARING"
-
+#define WP_STACK_PROTECTION_EVENT_NAME "WP_STACK_PROTECTION"
 
 typedef enum WP_CLIENT_ID{
     WP_DEADSPY,
@@ -220,6 +220,7 @@ typedef enum WP_CLIENT_ID{
     WP_IPC_FALSE_SHARING,
     WP_IPC_TRUE_SHARING,
     WP_IPC_ALL_SHARING,
+    WP_STACK_PROTECTION,
     WP_MAX_CLIENTS }WP_CLIENT_ID;
 
 typedef struct WpClientConfig{
@@ -302,7 +303,7 @@ static WPTriggerActionType TrueSharingWPCallback(WatchPointInfo_t *wpi, int star
 static WPTriggerActionType IPCFalseSharingWPCallback(WatchPointInfo_t *wpi, int startOffset, int safeAccessLen, WatchPointTrigger_t * wt);
 static WPTriggerActionType IPCAllSharingWPCallback(WatchPointInfo_t *wpi, int startOffset, int safeAccessLen, WatchPointTrigger_t * wt);
 static WPTriggerActionType IPCTrueSharingWPCallback(WatchPointInfo_t *wpi, int startOffset, int safeAccessLen, WatchPointTrigger_t * wt);
-
+static WPTriggerActionType StackProtectionWPCallback(WatchPointInfo_t *wpi, int startOffset, int safeAccessLen, WatchPointTrigger_t * wt);
 
 static WpClientConfig_t wpClientConfig[] = {
     /**** DeadSpy ***/
@@ -384,8 +385,15 @@ static WpClientConfig_t wpClientConfig[] = {
         .wpCallback = IPCTrueSharingWPCallback,
         .preWPAction = DISABLE_WP,
         .configOverrideCallback = IPCTrueSharingWPConfigOverride
+    },
+    /*** Stack Protection ***/
+    {
+        .id = WP_STACK_PROTECTION,
+        .name = WP_STACK_PROTECTION_EVENT_NAME,
+        .wpCallback = StackProtectionWPCallback,
+        .preWPAction = DISABLE_WP,
+        .configOverrideCallback = StackProtectionWPConfigOverride
     }
-    
 };
 
 
@@ -553,7 +561,8 @@ static void ClientTermination(){
             hpcrun_stats_num_trueWWIns_inc(trueWWIns);
             hpcrun_stats_num_trueRWIns_inc(trueRWIns);
             hpcrun_stats_num_trueWRIns_inc(trueWRIns);
-            
+        case WP_STACK_PROTECTION:
+            break;
         default:
             break;
     }
@@ -850,7 +859,8 @@ METHOD_FN(process_event_list, int lush_metrics)
             hpcrun_set_metric_info_and_period(measured_metric_id, "MONITORED", MetricFlags_ValFmt_Int, 1, metric_property_none);
             SetUpTrueSharingMetrics();
             break;
-            
+        case WP_STACK_PROTECTION:
+            break;
         default:
             break;
     }
@@ -1489,6 +1499,10 @@ static WPTriggerActionType IPCTrueSharingWPCallback(WatchPointInfo_t *wpi, int s
     return ALREADY_DISABLED;
 }
 static WPTriggerActionType IPCAllSharingWPCallback(WatchPointInfo_t *wpi, int startOffset, int safeAccessLen, WatchPointTrigger_t * wt){
+    return ALREADY_DISABLED;
+}
+
+static WPTriggerActionType StackProtectionWPCallback(WatchPointInfo_t *wpi, int startOffset, int safeAccessLen, WatchPointTrigger_t * wt){
     return ALREADY_DISABLED;
 }
 
@@ -2505,6 +2519,9 @@ bool OnSample(perf_mmap_data_t * mmap_data, void * contextPC, cct_node_t *node, 
             UpdateVMMap();
             HandleIPCFalseSharing(data_addr, precisePC, node, accessLen, accessType, sampledMetricId, isSamplePointAccurate);
         }
+            break;
+        case WP_STACK_PROTECTION:
+
             break;
         default:
             break;

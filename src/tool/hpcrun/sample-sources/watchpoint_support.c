@@ -376,6 +376,11 @@ void ReuseWPConfigOverride(void *v){
     wpConfig.dontDisassembleWPAddress = true;
 }
 
+void StackProtectionWPConfigOverride(void *v){
+    wpConfig.dontFixIP = true;
+    wpConfig.dontDisassembleWPAddress = true;
+}
+
 static void CreateWatchPoint(WatchPointInfo_t * wpi, SampleData_t * sampleData, bool modify) {
     // Perf event settings
     struct perf_event_attr pe = {

@@ -154,6 +154,7 @@ extern bool IsFSorGS(void *addr);
 extern double ProportionOfWatchpointAmongOthersSharingTheSameContext(WatchPointInfo_t *wpi);
 
 
+extern void StackProtectionWPConfigOverride(void *);
 extern void ReuseWPConfigOverride(void*);
 extern void FalseSharingWPConfigOverride(void*);
 extern void TrueSharingWPConfigOverride(void*);
