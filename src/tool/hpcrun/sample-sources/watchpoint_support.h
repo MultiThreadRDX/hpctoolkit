@@ -148,7 +148,7 @@ typedef void (*ClientConfigOverrideCall_t)(void *);
 extern void WatchpointThreadInit();
 extern void WatchpointThreadTerminate();
 extern bool SubscribeWatchpoint(SampleData_t * sampleData, OverwritePolicy overwritePolicy, bool captureValue);
-extern bool OnSample(perf_mmap_data_t * mmap_data, void * contextPC, cct_node_t *node, int sampledMetricId);
+extern bool OnSample(perf_mmap_data_t * mmap_data, void * contextPC, cct_node_t *node, void *context, int sampledMetricId);
 extern bool IsAltStackAddress(void *addr);
 extern bool IsFSorGS(void *addr);
 extern double ProportionOfWatchpointAmongOthersSharingTheSameContext(WatchPointInfo_t *wpi);

@@ -2195,19 +2195,18 @@ bool PrintStats(){
 }
 #endif
 
-bool OnSample(perf_mmap_data_t * mmap_data, void * contextPC, cct_node_t *node, int sampledMetricId) {
+bool OnSample(perf_mmap_data_t * mmap_data, void * contextPC, cct_node_t *node, void *context, int sampledMetricId) {
     void * data_addr = (void *)mmap_data->addr;
     void * precisePC = (void *)((mmap_data->header_misc & PERF_RECORD_MISC_EXACT_IP) ? mmap_data->ip : 0);
     // Filert out address and PC (0 or kernel address will not pass)
-    if (!IsValidAddress(data_addr, precisePC)) {
+    if (theWPConfig->id != WP_STACK_PROTECTION && !IsValidAddress(data_addr, precisePC)) {
         goto ErrExit; // incorrect access type
     }
-    
+
     // do not monitor NULL CCT node
     if (node == NULL) {
         goto ErrExit; // incorrect CCT
     }
-    
    // fprintf(stderr, " numWatchpointsSet=%lu\n", wpStats.numWatchpointsSet);
 
    int accessLen;
@@ -2520,9 +2519,20 @@ bool OnSample(perf_mmap_data_t * mmap_data, void * contextPC, cct_node_t *node, 
             HandleIPCFalseSharing(data_addr, precisePC, node, accessLen, accessType, sampledMetricId, isSamplePointAccurate);
         }
             break;
-        case WP_STACK_PROTECTION:
+        case WP_STACK_PROTECTION:{
+            hpcrun_unw_cursor_t cursor;
+            hpcrun_unw_init_cursor(&cursor, context);
+            //step_state ret = STEP_ERROR;
+            //ret = hpcrun_unw_step(&cursor);
+            //if (ret != STEP_ERROR || ret != STEP_STOP){
+            load_module_t *lm = hpcrun_loadmap_findById(cursor.the_function.lm_id);
+            
+                fprintf(stderr, "CURSOR: ra_loc %lx, ra %lx, sp %lx, bp %lx, function %d %lx", cursor.ra_loc, cursor.ra, cursor.sp, cursor.bp, cursor.the_function.lm_id,cursor.the_function.lm_ip);
+            fprintf(stderr, ", module_start %lx", lm->dso_info->start_to_ref_dist);
+	fprintf(stderr, ", ra_loc val %lx, sp val %lx\n", *(uint64_t *)cursor.ra_loc, *(uint64_t *) cursor.sp);
 
-            break;
+        }
+            
         default:
             break;
     }
