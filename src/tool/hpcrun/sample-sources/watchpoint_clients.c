@@ -164,6 +164,8 @@ int true_wr_metric_id = -1;
 
 int *reuse_distance_events = NULL;
 int reuse_distance_num_events = 0;
+#define REUSE_HISTO 1
+
 #ifdef REUSE_HISTO
 bool reuse_output_trace = false;
 double reuse_bin_start = 0;
@@ -172,11 +174,12 @@ uint64_t * reuse_bin_list = NULL;
 double * reuse_bin_pivot_list = NULL; // store the bin intervals
 int reuse_bin_size = 0;
 #else
+#endif
 AccessType reuse_monitor_type = LOAD_AND_STORE; // WP_REUSE: what kind of memory access can be used to subscribe the watchpoint
 WatchPointType reuse_trap_type = WP_RW; // WP_REUSE: what kind of memory access can trap the watchpoint
 ReuseType reuse_profile_type = REUSE_BOTH; // WP_REUSE: we want to collect temporal reuse, spatial reuse OR both?
 bool reuse_concatenate_use_reuse = false; // WP_REUSE: how to concatentate the use and reuse
-#endif
+//#endif
 
 #define NUM_WATERMARK_METRICS (4)
 int curWatermarkId = 0;
